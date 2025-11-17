@@ -28,7 +28,7 @@ os.makedirs(model_directory, exist_ok=True)
 class DownloadAndLoadTransNetModel:
     """
     A ComfyUI node for downloading and loading TransNetV2 models.
-    Automatically downloads from Hugging Face (MiaoshouAI/transnetv2-pytorch-weights) if not found locally.
+    Automatically downloads from Hugging Face if not found locally.
     Following the Qwen2.5-VL structure for consistency.
     """
     
@@ -52,7 +52,7 @@ class DownloadAndLoadTransNetModel:
     RETURN_TYPES = ("TRANSNET_MODEL",)
     RETURN_NAMES = ("TransNet_model",)
     FUNCTION = "DownloadAndLoadTransNetModel"
-    CATEGORY = "MiaoshouAI Video Segmentation"
+    CATEGORY = "Video Segmentation"
 
     def DownloadAndLoadTransNetModel(self, model, device):
         TransNet_model = {"model": "", "model_path": ""}
@@ -203,7 +203,7 @@ class TransNetV2_Run:
     RETURN_TYPES = ("LIST", "STRING", "INT")
     RETURN_NAMES = ("segment_paths", "path_string", "clip_count")
     FUNCTION = "TransNetV2_Run"
-    CATEGORY = "MiaoshouAI Video Segmentation"
+    CATEGORY = "Video Segmentation"
 
     def TransNetV2_Run(
         self,
@@ -531,7 +531,7 @@ class SelectVideo:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("selected_path",)
     FUNCTION = "select_video"
-    CATEGORY = "MiaoshouAI Video Segmentation"
+    CATEGORY = "Video Segmentation"
 
     def select_video(self, index, segment_paths=None):
         """
@@ -594,7 +594,7 @@ class ZipCompress:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("zip_filename",)
     FUNCTION = "compress_files"
-    CATEGORY = "MiaoshouAI Video Segmentation"
+    CATEGORY = "Video Segmentation"
 
     def compress_files(self, filename_prefix, image_format, password, images_or_video_path=None):
         """
@@ -682,6 +682,50 @@ class ZipCompress:
             return ("",)
 
 
+class SegmentIterator:
+    """
+    A looping iterator for TransNetV2 segment paths.
+    Allows ComfyUI workflows to loop through each segment automatically.
+    """
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "segment_paths": ("LIST",),
+                "index": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 9999,
+                    "step": 1,
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "INT", "BOOL")
+    RETURN_NAMES = ("current_path", "next_index", "has_next")
+    FUNCTION = "run"
+    CATEGORY = "Video Segmentation"
+
+    def run(self, segment_paths, index):
+        # Empty list guard
+        if segment_paths is None or len(segment_paths) == 0:
+            return ("", 0, False)
+
+        # Clamp index
+        if index < 0:
+            index = 0
+        if index >= len(segment_paths):
+            return ("", index, False)
+
+        current = segment_paths[index]
+
+        next_index = index + 1
+        has_next = next_index < len(segment_paths)
+
+        return (current, next_index, has_next)
+
+
 # Helper function similar to Qwen2.5-VL
 def temp_video(video):
     """
@@ -706,12 +750,14 @@ NODE_CLASS_MAPPINGS = {
     "DownloadAndLoadTransNetModel": DownloadAndLoadTransNetModel,
     "TransNetV2_Run": TransNetV2_Run,
     "SelectVideo": SelectVideo,
-    "ZipCompress": ZipCompress
+    "ZipCompress": ZipCompress,
+    "SegmentIterator": SegmentIterator
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "DownloadAndLoadTransNetModel": "🐾MiaoshouAI Load TransNet Model",
-    "TransNetV2_Run": "🐾MiaoshouAI Segment Video",
-    "SelectVideo": "🐾MiaoshouAI Select Video",
-    "ZipCompress": "🐾MiaoshouAI Zip Compress"
+    "DownloadAndLoadTransNetModel": "Load TransNet Model",
+    "TransNetV2_Run": "Segment Video",
+    "SelectVideo": "Select Video",
+    "ZipCompress": "Zip Compress",
+    "SegmentIterator": "Segment Iterator"
 }
