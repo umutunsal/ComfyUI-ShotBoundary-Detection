@@ -200,8 +200,8 @@ class TransNetV2_Run:
             },
         }
 
-    RETURN_TYPES = ("LIST", "STRING")
-    RETURN_NAMES = ("segment_paths", "path_string")
+    RETURN_TYPES = ("LIST", "STRING", "INT")
+    RETURN_NAMES = ("segment_paths", "path_string", "clip_count")
     FUNCTION = "TransNetV2_Run"
     CATEGORY = "MiaoshouAI Video Segmentation"
 
@@ -246,7 +246,7 @@ class TransNetV2_Run:
             path_string = "\n".join(segment_paths) if segment_paths else ""
             
             logger.info(f"Successfully created {len(segment_paths)} video segments")
-            return (segment_paths, path_string)
+            return (segment_paths, path_string, len(segment_paths))
             
         except Exception as e:
             logger.error(f"Error in TransNetV2 segmentation: {str(e)}")
