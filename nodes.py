@@ -702,7 +702,7 @@ class SegmentIterator:
             }
         }
 
-    RETURN_TYPES = ("VIDEO", "INT", "BOOL")
+    RETURN_TYPES = ("FILE", "INT", "BOOL")
     RETURN_NAMES = ("video_path", "next_index", "has_next")
     FUNCTION = "run"
     CATEGORY = "Video Segmentation"
